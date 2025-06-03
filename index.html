@@ -15,10 +15,6 @@
       flex-direction: column;
       align-items: center;
     }
-    h1 {
-      font-size: 1.8rem;
-      margin-bottom: 1rem;
-    }
     .container {
       background: #fff;
       padding: 20px;
@@ -27,6 +23,12 @@
       max-width: 400px;
       width: 100%;
     }
+    .title {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      font-weight: bold;
+    }
     input, select, button {
       width: 100%;
       padding: 10px;
@@ -34,6 +36,7 @@
       border-radius: 8px;
       border: 1px solid #ccc;
       font-size: 1rem;
+      box-sizing: border-box;
     }
     button {
       background-color: #007aff;
@@ -45,9 +48,9 @@
       background-color: #34c759;
       margin-top: 10px;
     }
-    img {
-      max-width: 100%;
+    .info {
       margin-top: 10px;
+      font-weight: bold;
     }
     @media screen and (max-width: 500px) {
       .container {
@@ -57,22 +60,25 @@
   </style>
 </head>
 <body>
-  <h1>vacancyHai image compressor</h1>
   <div class="container">
+    <div class="title">📦 vacancyHai image compressor</div>
     <input type="file" id="imageInput" accept="image/*">
     <select id="unitSelect">
-      <option value="px">Pixels</option>
-      <option value="inch">Inches</option>
+      <option value="px">📏 Pixels</option>
+      <option value="inch">📐 Inches</option>
     </select>
     <input type="number" id="width" placeholder="Width">
     <input type="number" id="height" placeholder="Height">
-    <button onclick="resizeImage()">Resize</button>
-    <img id="preview" style="display:none;">
-    <button id="downloadBtn" style="display:none;" onclick="downloadImage()">Download Image</button>
+    <button onclick="resizeImage()">🎯 Resize</button>
+    <div class="info" id="outputSizeInfo" style="display:none;"></div>
+    <button id="downloadBtn" style="display:none;" onclick="downloadImage()">⬇️ Download Image</button>
   </div>
 
   <script>
     let resizedBlob = null;
+    let currentUnit = 'px';
+    let currentWidth = 0;
+    let currentHeight = 0;
 
     function resizeImage() {
       const file = document.getElementById('imageInput').files[0];
@@ -85,13 +91,16 @@
         return;
       }
 
+      currentUnit = unit;
+      currentWidth = widthVal;
+      currentHeight = heightVal;
+
       const img = new Image();
       const reader = new FileReader();
       reader.onload = function(e) {
         img.onload = function() {
           const canvas = document.createElement('canvas');
           const dpi = 96;
-
           const targetWidth = unit === 'inch' ? widthVal * dpi : widthVal;
           const targetHeight = unit === 'inch' ? heightVal * dpi : heightVal;
 
@@ -103,10 +112,11 @@
 
           canvas.toBlob(function(blob) {
             resizedBlob = blob;
-            const url = URL.createObjectURL(blob);
-            const preview = document.getElementById('preview');
-            preview.src = url;
-            preview.style.display = 'block';
+            const sizeKB = (blob.size / 1024).toFixed(2);
+            const info = document.getElementById('outputSizeInfo');
+            const unitLabel = unit === 'inch' ? 'in' : 'px';
+            info.innerText = `📦 Output Size: ${sizeKB} KB\n📐 Dimensions: ${widthVal} x ${heightVal} ${unitLabel}`;
+            info.style.display = 'block';
             document.getElementById('downloadBtn').style.display = 'block';
           }, 'image/jpeg');
         }
