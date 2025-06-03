@@ -2,147 +2,127 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>vacancyHai image resizer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vacancyHai image compressor</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
     body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial;
+      background-color: #f5f5f7;
+      color: #1d1d1f;
       margin: 0;
-      padding: 0;
-      font-family: 'San Francisco', 'Segoe UI', sans-serif;
-      background: #f0f0f3;
+      padding: 20px;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      min-height: 100vh;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
     }
     .container {
-      width: 90%;
-      max-width: 600px;
-      background: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(12px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-      border-radius: 16px;
+      background: #fff;
       padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 0 16px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 100%;
     }
-    h2 {
-      margin-top: 0;
-      font-weight: 600;
-      font-size: 22px;
-      color: #333;
-      text-align: center;
-    }
-    input[type="file"],
-    input[type="number"],
-    select {
+    input, select, button {
       width: 100%;
       padding: 10px;
       margin-top: 10px;
-      font-size: 16px;
-      border-radius: 10px;
+      border-radius: 8px;
       border: 1px solid #ccc;
-      outline: none;
-    }
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: 500;
+      font-size: 1rem;
     }
     button {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 10px;
-      border: none;
-      margin-top: 20px;
       background-color: #007aff;
       color: white;
       cursor: pointer;
-      transition: 0.2s ease;
+      border: none;
     }
-    .info {
-      margin-top: 15px;
-      font-size: 15px;
-      font-weight: 500;
-      color: #333;
-      word-break: break-word;
+    #downloadBtn {
+      background-color: #34c759;
+      margin-top: 10px;
     }
-    canvas {
-      display: none;
+    img {
+      max-width: 100%;
+      margin-top: 10px;
+    }
+    @media screen and (max-width: 500px) {
+      .container {
+        padding: 15px;
+      }
     }
   </style>
 </head>
 <body>
+  <h1>vacancyHai image compressor</h1>
   <div class="container">
-    <h2>📐 vacancyHai image resizer</h2>
-
     <input type="file" id="imageInput" accept="image/*">
-
-    <label for="width">Width</label>
-    <input type="number" id="width" placeholder="Pixels or Inches">
-
-    <label for="height">Height</label>
-    <input type="number" id="height" placeholder="Pixels or Inches">
-
-    <label for="unit">Unit</label>
-    <select id="unit">
+    <select id="unitSelect">
       <option value="px">Pixels</option>
       <option value="inch">Inches</option>
     </select>
-
-    <button id="resizeBtn">Resize</button>
-
-    <div class="info" id="outputInfo">📤 Output: -</div>
-
-    <canvas id="canvas"></canvas>
+    <input type="number" id="width" placeholder="Width">
+    <input type="number" id="height" placeholder="Height">
+    <button onclick="resizeImage()">Resize</button>
+    <img id="preview" style="display:none;">
+    <button id="downloadBtn" style="display:none;" onclick="downloadImage()">Download Image</button>
   </div>
 
   <script>
-    const imageInput = document.getElementById("imageInput");
-    const widthInput = document.getElementById("width");
-    const heightInput = document.getElementById("height");
-    const unitSelect = document.getElementById("unit");
-    const resizeBtn = document.getElementById("resizeBtn");
-    const outputInfo = document.getElementById("outputInfo");
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
+    let resizedBlob = null;
 
-    const DPI = 96;
+    function resizeImage() {
+      const file = document.getElementById('imageInput').files[0];
+      const unit = document.getElementById('unitSelect').value;
+      const widthVal = parseFloat(document.getElementById('width').value);
+      const heightVal = parseFloat(document.getElementById('height').value);
 
-    resizeBtn.onclick = () => {
-      const file = imageInput.files[0];
-      if (!file) return alert("Please upload an image.");
+      if (!file || isNaN(widthVal) || isNaN(heightVal)) {
+        alert('Please provide all inputs.');
+        return;
+      }
 
-      const width = parseFloat(widthInput.value);
-      const height = parseFloat(heightInput.value);
-      const unit = unitSelect.value;
-
-      if (!width || !height) return alert("Please enter both width and height.");
-
+      const img = new Image();
       const reader = new FileReader();
-      reader.onload = e => {
-        const img = new Image();
-        img.onload = () => {
-          const scaleFactor = unit === "inch" ? DPI : 1;
-          canvas.width = width * scaleFactor;
-          canvas.height = height * scaleFactor;
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      reader.onload = function(e) {
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const dpi = 96;
 
-          canvas.toBlob(blob => {
+          const targetWidth = unit === 'inch' ? widthVal * dpi : widthVal;
+          const targetHeight = unit === 'inch' ? heightVal * dpi : heightVal;
+
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+          canvas.toBlob(function(blob) {
+            resizedBlob = blob;
             const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `VACANCYHAIONLINE_RESIZED.jpg`;
-            a.click();
-            outputInfo.textContent = `📤 Output: ${canvas.width}x${canvas.height} px`;
-          }, 'image/jpeg', 0.95);
-        };
+            const preview = document.getElementById('preview');
+            preview.src = url;
+            preview.style.display = 'block';
+            document.getElementById('downloadBtn').style.display = 'block';
+          }, 'image/jpeg');
+        }
         img.src = e.target.result;
-      };
+      }
       reader.readAsDataURL(file);
-    };
+    }
+
+    function downloadImage() {
+      if (!resizedBlob) return;
+      const a = document.createElement('a');
+      const timestamp = new Date().getSeconds();
+      a.href = URL.createObjectURL(resizedBlob);
+      a.download = `VACANCYHAIONLINE${timestamp}.jpg`;
+      a.click();
+    }
   </script>
 </body>
 </html>
