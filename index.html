@@ -52,6 +52,20 @@
       margin-top: 10px;
       font-weight: bold;
     }
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #555;
+    }
+    .footer a {
+      color: #007aff;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .footer a:hover {
+      text-decoration: underline;
+    }
     @media screen and (max-width: 500px) {
       .container {
         padding: 15px;
@@ -73,6 +87,9 @@
     <button onclick="resizeImage()">Resize</button>
     <div class="info" id="outputSizeInfo" style="display:none;"></div>
     <button id="downloadBtn" style="display:none;" onclick="downloadImage()">Download Image</button>
+    <div class="footer">
+      Developed by <a href="https://vacancyhai.online" target="_blank">VACANCYHAI.ONLINE</a> | Inspired by USERS
+    </div>
   </div>
 
   <script>
