@@ -61,7 +61,7 @@
 </head>
 <body>
   <div class="container">
-    <div class="title">⟮vacancyHai image resizer⟯</div>
+    <div class="title">vH-Image resizer</div>
     <input type="file" id="imageInput" accept="image/*">
     <select id="unitSelect">
       <option value="px">Pixels</option>
@@ -102,8 +102,18 @@
         img.onload = function() {
           const canvas = document.createElement('canvas');
           const dpi = 96;
-          const targetWidth = unit === 'inch' ? widthVal * dpi : widthVal;
-          const targetHeight = unit === 'inch' ? heightVal * dpi : heightVal;
+          let targetWidth, targetHeight;
+
+          if (unit === 'inch') {
+            targetWidth = widthVal * dpi;
+            targetHeight = heightVal * dpi;
+          } else if (unit === 'cm') {
+            targetWidth = widthVal * (dpi / 2.54);
+            targetHeight = heightVal * (dpi / 2.54);
+          } else {
+            targetWidth = widthVal;
+            targetHeight = heightVal;
+          }
 
           canvas.width = targetWidth;
           canvas.height = targetHeight;
@@ -115,7 +125,11 @@
             resizedBlob = blob;
             const sizeKB = (blob.size / 1024).toFixed(2);
             const info = document.getElementById('outputSizeInfo');
-            const unitLabel = unit === 'inch' ? 'in' : 'px';
+            let unitLabel = unit;
+            if (unit === 'inch') unitLabel = 'in';
+            else if (unit === 'cm') unitLabel = 'cm';
+            else unitLabel = 'px';
+
             info.innerText = `📦 Output Size: ${sizeKB} KB\n📐 Dimensions: ${widthVal} x ${heightVal} ${unitLabel}`;
             info.style.display = 'block';
             document.getElementById('downloadBtn').style.display = 'block';
